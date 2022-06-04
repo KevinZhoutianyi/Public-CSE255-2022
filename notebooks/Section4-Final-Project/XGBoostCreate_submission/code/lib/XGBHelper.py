@@ -6,12 +6,18 @@ from sklearn.metrics import roc_curve
 from sklearn.model_selection import train_test_split
 from numpy.random import choice
 from lib.XGBoost_params import *
+import pandas as pd
 
 def to_DMatrix(subData):
         """Transform matrix into xgb.DMatrix"""
         X=subData[:,:-1]
         y= np.array(subData[:, -1], dtype=int)
-        DMatrix = xgb.DMatrix(X, label=y)
+        X = pd.DataFrame(X)
+        y = pd.DataFrame(y)
+#         ft =  ['q']*512+['c']
+        X[512] = X[512].astype("category")
+        DMatrix = xgb.DMatrix(X, label=y, enable_categorical=True)
+#         DMatrix = xgb.DMatrix(X, label=y)
         return DMatrix
 
 class DataSplitter:
@@ -55,7 +61,8 @@ def simple_bootstrap(Train,Test,param,ensemble_size=2,normalize=True):
         boot_train=DStrain.bootstrap_sample()
         dtrain = to_DMatrix(boot_train)
         bst,_ = run_xgboost(dtrain,dtest,param)
-        y_pred = bst.predict(dtest,output_margin=True)
+        print(bst)
+        y_pred = bst.predict(dtest,output_margin=True,ntree_limit=bst.best_ntree_limit)
         log.append({
             'i':i,
             'bst':bst,
@@ -89,7 +96,7 @@ def run_xgboost(dtrain,dtest,param):
     cparam.pop('num_round')
     
     bst=xgb.train(param_D2L(cparam), dtrain, num_round, evallist,\
-                verbose_eval=False, evals_result=evals_result)
+                verbose_eval=False, evals_result=evals_result,early_stopping_rounds=50)
 
     return bst,evals_result
 

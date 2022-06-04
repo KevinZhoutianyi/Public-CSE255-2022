@@ -134,7 +134,7 @@ class encoded_dataset:
   
         self.df=df
         self.rows=df.shape[0]
-        self.cols=2**(depth+1)+1
+        self.cols=2**(depth+1)+1+1
         data=zeros([self.rows,self.cols]) #code length +1 for label
 
         j=0
@@ -142,14 +142,16 @@ class encoded_dataset:
             filepath=f"{image_dir}/{filename}"
             code = encode_image(filepath,tree)
 
-            V=zeros(self.cols-1)
+            V=zeros(self.cols-1-1)
             for c,a in code:
                 V[bin2int(c)]=a
 
             label=row[label_col]*1
+            country=row['country']*1
 
             data[j,-1]=label
-            data[j,:-1]=V
+            data[j,-2]=country
+            data[j,:-2]=V
 
             if((j+1) %10==0):
                 print(j,filename,end='\r')
