@@ -90,6 +90,16 @@ def get_error_values(y_pred, y_test, thresholds):
         y_pred_i = y_pred[y_test == 0]
         correct = sum(y_pred_i <= thresh)
         accuracy_0.append(1.0 * correct / len(y_test_i))
+    thresh = 0
+    y_test_i = y_test[y_test == 1]
+    y_pred_i = y_pred[y_test == 1]
+    correct = sum(y_pred_i > thresh)
+
+    y_test_i = y_test[y_test == 0]
+    y_pred_i = y_pred[y_test == 0]
+    correct = sum(y_pred_i <= thresh)
+    print('accuracy_1',1.0 * correct / len(y_test_i))
+    print('accuracy_0',1.0 * correct / len(y_test_i))
     
     error_1 = list(1 - array(accuracy_1))
     error_0 = list(1 - array(accuracy_0))

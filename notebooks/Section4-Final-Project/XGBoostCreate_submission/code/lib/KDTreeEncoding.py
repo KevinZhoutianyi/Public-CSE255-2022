@@ -13,6 +13,7 @@ class KD_tree:
     def calc_encoding(self,data):
         """calculate a log ratio encoding for a new set of vectors (=image)"""
         data_size=data.shape[0]
+#         print('data_size',data_size)
         return self.root.calc_encoding(data,data_size)
 
 class KD_node:
@@ -21,9 +22,14 @@ class KD_node:
         #print(len(path))
         self.tree=tree
         self.path=path
+#         print('path',path)
         self.read_path=''.join([str(x) for x in path])
+#         print('self.read_path',self.read_path)
         self.size,self.dim=data.shape
+#         print('self.size',self.size)
+#         print('self.dim',self.dim)
         self.prob=data.shape[0]/self.tree.data_size
+#         print('self.prob',self.prob)
         #print('%10s  %3.3g'%(self.read_path,self.prob))
  
         if self.size<limit or len(path)>depth:
@@ -31,8 +37,11 @@ class KD_node:
         else:
             self.leaf=False
             index=random.choice(self.dim)
+            if(len(path)<1):
+                index = 7
             H=data[:,index]
             threshold=median(H)
+#             print('threshold',threshold)
             below=data[data[:,index]<threshold,:]
             above=data[data[:,index]>=threshold,:]
             self.threshold=threshold
@@ -43,15 +52,24 @@ class KD_node:
     def calc_encoding(self,data,full_data_size,limit=100,smooth=1e-7):
         """Use trained tree to encode an individual dataset (image)"""
         my_prob=data.shape[0]/full_data_size
+#         print('my_prob',my_prob)
+#         print('self.prob',self.prob)
         log_ratio=log((my_prob+smooth)/(self.prob+smooth))
+#         print('log_ratio',log_ratio)
         my_result=[(self.read_path,log_ratio)]
         if self.leaf or data.shape[0] < limit:
+#             print('self.leaf',self.leaf)
+#             print('data.shape[0]',data.shape[0])
             return my_result
         else:
             below=data[data[:,self.index]<self.threshold,:]
             above=data[data[:,self.index]>=self.threshold,:]
             above_results=self.above.calc_encoding(above,full_data_size,limit=limit)
             below_results=self.below.calc_encoding(below,full_data_size,limit=limit)
+#             print('above_results',above_results)
+#             print('below_results',below_results)
+#             print('my_result',my_result)
+#             print(my_result+above_results+below_results)
             return my_result+above_results+below_results
 
     def calc_density(self,data):
@@ -98,6 +116,7 @@ def train_encoder(files,max_images=200,tree_depth=8):
 def encode_image(file,tree):
     M=load(file)
     Image=M['x']
+#     print('Image.shape',Image.shape)
     pixels=Image.reshape((Image.shape[0], -1)).T
     code=tree.calc_encoding(pixels)
     return code
